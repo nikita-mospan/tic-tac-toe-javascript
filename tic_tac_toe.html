@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe</title>
+</head>
+<body>
+<div id="board">
+    <div id="whoStartsFirst">
+        <input type="button" id="computerBegins" value="Computer starts first">
+        <input type="button" id="humanBegins" value="Human starts first">
+    </div>
+    <div id="informationArea"></div>
+    <table>
+        <tr>
+            <td id="00"><input type="button" id="button00"></td>
+            <td id="01"><input type="button" id="button01"></td>
+            <td id="02"><input type="button" id="button02"></td>
+        </tr>
+        <tr>
+            <td id="10"><input type="button" id="button10"></td>
+            <td id="11"><input type="button" id="button11"></td>
+            <td id="12"><input type="button" id="button12"></td>
+        </tr>
+        <tr>
+            <td id="20"><input type="button" id="button20"></td>
+            <td id="21"><input type="button" id="button21"></td>
+            <td id="22"><input type="button" id="button22"></td>
+        </tr>
+    </table>
+</div>
+<script>
+    window.onload = init;
+
+    function init() {
+        document.getElementById("computerBegins").onclick = handleStartFirst;
+        document.getElementById("humanBegins").onclick = handleStartFirst;
+    }
+
+    function handleStartFirst(event) {
+        const cross = "X";
+        const naught = "O";
+        document.querySelector('#whoStartsFirst').style.display = 'none';
+        if (event.target.id === "computerBegins") {
+            computer.value = cross;
+            human.value = naught;
+            gameState.currentPlayer = computer;
+            gameState.opponentPlayer = human;
+            gameState.makeNextMove();
+        } else {
+            computer.value = naught;
+            human.value = cross;
+            gameState.currentPlayer = human;
+            gameState.opponentPlayer = computer;
+            view.enableButtonHandlers();
+        }
+        document.getElementById("informationArea").innerHTML = human.toString() + " | " + computer.toString();
+    }
+
+    function Player(name, value, score) {
+        this.name = name;
+        this.value = value;
+        this.score = score;
+    }
+
+    Player.prototype.toString = function () {
+        return this.name + " plays " + this.value;
+    };
+
+    const human = new Player("human", "*", -1);
+
+    const computer = new Player("computer", "*", 1);
+
+    const gameEndStatus = {
+        computerWon : "Computer Won!"
+        , draw : "Draw!"
+    };
+
+    const view = {
+        getButtonName : function(rowIdx, columnIdx) {
+            return "button" + rowIdx + columnIdx;
+        },
+
+        updateBoard : function (rowIdx, columnIdx, value) {
+            document.getElementById(this.getButtonName(rowIdx, columnIdx)).value = value;
+        },
+
+        enableButtonHandlers : function () {
+            let currentButton;
+            for (let rowIdx = 0; rowIdx < gameState.boardSize; rowIdx++) {
+                for (let columnIdx = 0; columnIdx < gameState.boardSize; columnIdx++) {
+                    currentButton = document.getElementById(this.getButtonName(rowIdx, columnIdx));
+                    if (currentButton.value === "") {
+                        currentButton.onclick = handleHumanMove;
+                    }
+                }
+            }
+        },
+
+        disableButtonHandlers : function () {
+            for (let rowIdx = 0; rowIdx < gameState.boardSize; rowIdx++) {
+                for (let columnIdx = 0; columnIdx < gameState.boardSize; columnIdx++) {
+                    document.getElementById(this.getButtonName(rowIdx, columnIdx)).onclick = null;
+                }
+            }
+        },
+
+        gameIsFinished: function() {
+            const status = gameState.getGameEndStatusOrUndefined();
+            if (status !== undefined) {
+                this.announceEndOfGame(status);
+                return true;
+            }
+            return false;
+        },
+
+        announceEndOfGame: function (status) {
+            document.getElementById("informationArea").innerHTML += " " + status;
+        }
+
+    };
+
+    function handleHumanMove (event) {
+        view.disableButtonHandlers();
+        if(view.gameIsFinished()) {
+            return;
+        }
+
+        const rowIdx = parseInt(event.target.id.substring(6,7));
+        const columnIdx = parseInt(event.target.id.substring(7));
+        gameState.board[rowIdx][columnIdx] = human.value;
+        view.updateBoard(rowIdx, columnIdx, human.value);
+        gameState.switchPlayers();
+        gameState.makeNextMove();
+    }
+
+    const gameState = {
+        boardSize : 3,
+        board : [new Array(this.boardSize), new Array(this.boardSize), new Array(this.boardSize)],
+        currentPlayer : {},
+        opponentPlayer : {},
+
+        switchPlayers : function () {
+            const tempPlayer = this.currentPlayer;
+            this.currentPlayer = this.opponentPlayer;
+            this.opponentPlayer = tempPlayer;
+        },
+
+        getOpponentWinnerOrUndefined : function () {
+            const opponentPlayerValue = this.opponentPlayer.value;
+            if ((this.board[0][0] === opponentPlayerValue && this.board[0][1] === opponentPlayerValue && this.board[0][2] === opponentPlayerValue) ||
+                (this.board[1][0] === opponentPlayerValue && this.board[1][1] === opponentPlayerValue && this.board[1][2] === opponentPlayerValue) ||
+                (this.board[2][0] === opponentPlayerValue && this.board[2][1] === opponentPlayerValue && this.board[2][2] === opponentPlayerValue) ||
+                (this.board[0][0] === opponentPlayerValue && this.board[1][0] === opponentPlayerValue && this.board[2][0] === opponentPlayerValue) ||
+                (this.board[0][1] === opponentPlayerValue && this.board[1][1] === opponentPlayerValue && this.board[2][1] === opponentPlayerValue) ||
+                (this.board[0][2] === opponentPlayerValue && this.board[1][2] === opponentPlayerValue && this.board[2][2] === opponentPlayerValue) ||
+                (this.board[0][0] === opponentPlayerValue && this.board[1][1] === opponentPlayerValue && this.board[2][2] === opponentPlayerValue) ||
+                (this.board[0][2] === opponentPlayerValue && this.board[1][1] === opponentPlayerValue && this.board[2][0] === opponentPlayerValue)) {
+                return this.opponentPlayer;
+            }
+        },
+
+        getGameEndStatusOrUndefined : function () {
+            if (this.currentPlayer === human && this.getOpponentWinnerOrUndefined() !== undefined) {
+                return gameEndStatus.computerWon;
+            } else {
+                for (let rowIdx = 0; rowIdx < this.boardSize; rowIdx++) {
+                    for (let columnIdx = 0; columnIdx < this.boardSize; columnIdx++) {
+                        if (this.board[rowIdx][columnIdx] === undefined) {
+                            return;
+                        }
+                    }
+                }
+            }
+            return gameEndStatus.draw;
+        },
+
+        calculateNextMove: function () {
+            const opponentWinner = this.getOpponentWinnerOrUndefined();
+
+            if (opponentWinner !== undefined) {
+                this.switchPlayers();
+                return {rowIdx : -1, columnIdx : -1, score : opponentWinner.score} ;
+            }
+
+            let score = 0;
+            let firstComparison = true;
+            let scoreForNextMove;
+            let optimalMove = {rowIdx : -1, columnIdx : -1, score : 0};
+
+            for (let rowIdx = 0; rowIdx < this.boardSize; rowIdx++) {
+                for (let columnIdx = 0; columnIdx < this.boardSize; columnIdx++) {
+                    if (this.board[rowIdx][columnIdx] === undefined) {
+                        this.board[rowIdx][columnIdx] = this.currentPlayer.value;
+                        this.switchPlayers();
+                        scoreForNextMove = this.calculateNextMove().score;
+                        if ((scoreForNextMove > score && this.currentPlayer === computer)
+                            || (scoreForNextMove < score && this.currentPlayer === human)
+                            || firstComparison) {
+                            firstComparison = false;
+                            score = scoreForNextMove;
+                            optimalMove = {rowIdx: rowIdx, columnIdx: columnIdx, score: score};
+                        }
+                        this.board[rowIdx][columnIdx] = undefined;
+                    }
+                }
+            }
+
+            this.switchPlayers();
+            return optimalMove;
+
+        },
+
+        makeNextMove: function() {
+            if (view.gameIsFinished()) {
+                return;
+            }
+            const optimalMove = this.calculateNextMove();
+            console.log(optimalMove);
+            this.board[optimalMove.rowIdx][optimalMove.columnIdx] = computer.value;
+            view.updateBoard(optimalMove.rowIdx, optimalMove.columnIdx, computer.value);
+            if (view.gameIsFinished()) {
+                return;
+            }
+            view.enableButtonHandlers();
+        }
+
+    };
+
+
+</script>
+</body>
+</html>
