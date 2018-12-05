@@ -10,7 +10,7 @@
         <input type="button" id="humanBegins" value="Human starts first">
     </div>
 
-    <div id="board">
+    <div id="board" style="display: none">
         <div id="informationArea"></div>
         <table>
             <tr>
@@ -37,7 +37,6 @@
         function init() {
             document.getElementById("computerBegins").onclick = handleStartFirst;
             document.getElementById("humanBegins").onclick = handleStartFirst;
-            document.querySelector('#board').style.display = 'none'
         }
 
         function handleStartFirst(event) {
