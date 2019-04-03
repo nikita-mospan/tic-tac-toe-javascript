@@ -34,8 +34,10 @@
     <script>
         window.onload = init;
 
+        const COMPUTER_BEGINS = "computerBegins";
+
         function init() {
-            document.getElementById("computerBegins").onclick = handleStartFirst;
+            document.getElementById(COMPUTER_BEGINS).onclick = handleStartFirst;
             document.getElementById("humanBegins").onclick = handleStartFirst;
         }
 
@@ -44,7 +46,7 @@
             const naught = "O";
             document.querySelector('#whoStartsFirst').style.display = 'none';
             document.querySelector('#board').style.display = 'initial';
-            if (event.target.id === "computerBegins") {
+            if (event.target.id === COMPUTER_BEGINS) {
                 computer.value = cross;
                 human.value = naught;
                 gameState.currentPlayer = computer;
